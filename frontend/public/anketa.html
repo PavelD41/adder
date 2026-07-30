@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Анкета</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: linear-gradient(135deg, var(--tg-theme-bg-color, #f5f7fa) 0%, var(--tg-theme-secondary-bg-color, #e8ecf1) 100%);
+      color: var(--tg-theme-text-color, #1a1a1a); 
+      padding: 20px; 
+      margin: 0; 
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+      color: var(--tg-theme-text-color, #1a1a1a);
+    }
+    .input-group { 
+      margin-bottom: 20px; 
+      background: var(--tg-theme-bg-color, #fff);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    label { 
+      display: block; 
+      font-size: 14px; 
+      font-weight: 600; 
+      margin-bottom: 8px;
+      color: var(--tg-theme-text-color, #1a1a1a);
+    }
+    input, textarea, select { 
+      width: 100%; 
+      padding: 12px 14px; 
+      border: 2px solid var(--tg-theme-hint-color, #e0e0e0); 
+      border-radius: 10px; 
+      background: var(--tg-theme-secondary-bg-color, #fafafa); 
+      color: var(--tg-theme-text-color, #1a1a1a); 
+      font-size: 15px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--tg-theme-button-color, #2481cc);
+      background: var(--tg-theme-bg-color, #fff);
+      box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .checkbox-label { 
+      display: flex; 
+      align-items: flex-start; 
+      gap: 12px; 
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .checkbox-label input[type="checkbox"] { 
+      width: 20px; 
+      height: 20px;
+      margin-top: 2px;
+      accent-color: var(--tg-theme-button-color, #2481cc);
+      cursor: pointer;
+    }
+    .checkbox-label span { 
+      font-size: 14px; 
+      line-height: 1.5;
+      color: var(--tg-theme-text-color, #1a1a1a);
+    }
+    .status { 
+      margin-top: 20px; 
+      font-size: 15px; 
+      color: var(--tg-theme-hint-color, #666); 
+      text-align: center;
+      padding: 12px;
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      border-radius: 10px;
+    }
+    .input-group:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>📝 Заявка на вступление</h1>
+  <form id="anketaForm">
+    <div class="input-group">
+      <label>Возраст (по желанию)</label>
+      <input type="number" name="age" placeholder="25" min="1">
+    </div>
+    <div class="input-group">
+      <label>Как вы попали на канал *</label>
+      <input type="text" name="source" required placeholder="Откуда вы о нас узнали?">
+    </div>
+    <div class="input-group">
+      <label>Знаете ли вы создателя канала? *</label>
+      <select name="knows_creator" required>
+        <option value="">Выберите вариант</option>
+        <option value="да">Да</option>
+        <option value="нет">Нет</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>Зачем вы хотите вступить в канал (по желанию)</label>
+      <textarea name="reason" rows="3" placeholder="Почему хотите вступить?"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="agree_rules" required>
+        <span>Соглашаюсь с правилами канала *</span>
+      </label>
+    </div>
+    <div class="input-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="nsfw_warning" required>
+        <span>Предупрежден и в курсе о наличии NSFW контента *</span>
+      </label>
+    </div>
+  </form>
+  <div class="status" id="status"></div>
+  <script>
+    const form = document.getElementById('anketaForm');
+    const statusEl = document.getElementById('status');
+    const webApp = window.Telegram?.WebApp;
+
+    if (!webApp) {
+      statusEl.textContent = 'Откройте анкету через кнопку в боте Telegram.';
+      console.error('Telegram WebApp not available');
+    } else {
+      console.log('Telegram WebApp initialized');
+      console.log('WebApp version:', webApp.version);
+      console.log('WebApp platform:', webApp.platform);
+      console.log('initDataUnsafe:', webApp.initDataUnsafe);
+      console.log('User data:', webApp.initDataUnsafe?.user);
+      console.log('sendData type:', typeof webApp.sendData);
+      
+      // Проверка правильной инициализации
+      if (!webApp.initDataUnsafe?.user && webApp.platform !== 'web') {
+        console.warn('WebApp opened without user data - not a proper Telegram WebApp');
+        statusEl.textContent = '⚠️ Откройте анкету через кнопку в боте, а не напрямую';
+      }
+      
+      webApp.ready();
+      webApp.expand();
+
+      const submitAnketa = async () => {
+        console.log('Submit button clicked');
+        
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => { data[key] = String(value).trim(); });
+        
+        // Обработка чекбоксов отдельно
+        data.agree_rules = form.querySelector('[name="agree_rules"]').checked ? 'true' : 'false';
+        data.nsfw_warning = form.querySelector('[name="nsfw_warning"]').checked ? 'true' : 'false';
+
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUserId = urlParams.get('user_id');
+        const botToken = urlParams.get('bot_token');
+        const username = urlParams.get('username') || 'unknown';
+        const adminIds = urlParams.get('admin_ids');
+        const userId = webApp.initDataUnsafe?.user?.id || (urlUserId ? parseInt(urlUserId) : null);
+        
+        console.log('User ID from WebApp:', webApp.initDataUnsafe?.user?.id);
+        console.log('User ID from URL:', urlUserId);
+        console.log('Bot token from URL:', botToken ? 'present' : 'missing');
+        console.log('Username:', username);
+        console.log('Admin IDs:', adminIds);
+        console.log('Final User ID:', userId);
+
+        if (!userId) {
+          console.error('No user_id available!');
+          statusEl.textContent = 'Ошибка: не удалось определить ID пользователя';
+          alert('Ошибка: откройте анкету через бота');
+          return;
+        }
+        
+        statusEl.textContent = 'Отправка...';
+        
+        // Используем Vercel API для отправки
+        if (botToken && adminIds) {
+          console.log('Using Vercel API method...');
+          try {
+            const response = await fetch('/api/send-anketa', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                bot_token: botToken,
+                user_id: userId,
+                username: username,
+                admin_ids: adminIds,
+                data: data
+              })
+            });
+
+            const result = await response.json();
+            console.log('API response:', result);
+
+            if (result.success) {
+              statusEl.textContent = '✅ Заявка отправлена на модерацию!';
+              setTimeout(() => {
+                if (webApp.close) webApp.close();
+              }, 1000);
+            } else {
+              throw new Error(result.error || 'Unknown error');
+            }
+          } catch (e) {
+            console.error('API error:', e);
+            statusEl.textContent = '❌ Ошибка отправки: ' + e.message;
+            // Fallback на clipboard
+            const messageText = `📋 Новая заявка от @${username}\n\nВозраст: ${data.age || 'Не указано'}\nКак попали на канал: ${data.source}\nЗнает создателя: ${data.knows_creator}\nЗачем вступить: ${data.reason || 'Не указано'}\nСогласен с правилами: ${data.agree_rules === 'true' ? '✅' : '❌'}\nNSFW предупрежден: ${data.nsfw_warning === 'true' ? '✅' : '❌'}\n\nUser ID: ${userId}`;
+            navigator.clipboard.writeText(messageText).then(() => {
+              alert('Ошибка API. Данные скопированы. Отправьте боту вручную.');
+            });
+          }
+        } else {
+          console.log('No bot token, using fallback');
+          // Fallback: копируем в буфер обмена
+          const messageText = `📋 Новая заявка\n\nВозраст: ${data.age || 'Не указано'}\nКак попали на канал: ${data.source}\nЗнает создателя: ${data.knows_creator}\nЗачем вступить: ${data.reason || 'Не указано'}\nСогласен с правилами: ${data.agree_rules === 'true' ? '✅' : '❌'}\nNSFW предупрежден: ${data.nsfw_warning === 'true' ? '✅' : '❌'}\n\nUser ID: ${userId}`;
+          
+          navigator.clipboard.writeText(messageText).then(() => {
+            statusEl.textContent = '✅ Данные скопированы! Отправьте их боту.';
+            alert('Данные скопированы в буфер обмена. Откройте чат с ботом и вставьте текст (Ctrl+V).');
+            if (webApp.close) webApp.close();
+          }).catch(err => {
+            console.error('Clipboard error:', err);
+            statusEl.textContent = '❌ Не удалось скопировать. Скопируйте текст вручную:';
+            alert('Скопируйте этот текст и отправьте боту:\n\n' + messageText);
+          });
+        }
+      };
+
+      webApp.MainButton.setText('📤 Отправить заявку');
+      webApp.MainButton.show();
+      webApp.MainButton.onClick(submitAnketa);
+      console.log('MainButton configured');
+    }
+  </script>
+</body>
+</html>
