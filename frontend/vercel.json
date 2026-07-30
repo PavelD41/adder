@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/anketa.html", "destination": "/public/anketa.html" },
+    { "source": "/sign.html", "destination": "/public/sign.html" },
+    { "source": "/(.*)", "destination": "/public/$1" }
+  ]
+}
